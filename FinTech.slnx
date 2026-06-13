@@ -3,6 +3,7 @@
     <Project Path="src/FinTech.Persistence/FinTech.Persistence.csproj" />
   </Folder>
   <Folder Name="/src/Core/">
+    <Project Path="src/Core/FinTech.Application/FinTech.Application.csproj" />
     <Project Path="src/Core/FinTech.Domain/FinTech.Domain.csproj" />
   </Folder>
   <Folder Name="/tests/" />
