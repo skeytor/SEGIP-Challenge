@@ -46,6 +46,12 @@ internal sealed class LoanConfiguration : IEntityTypeConfiguration<Loan>
         builder.Property(l => l.UpdatedAt)
             .IsRequired();
 
+        // Index to optimize queries filtering by UserId
+        builder.HasIndex(l => l.UserId);
+
+        // Index to optimize queries filtering by UserId and Status
+        builder.HasIndex(l => new { l.UserId, l.Status });
+
         // Relationships
         builder.HasMany(l => l.PaymentSchedules)
             .WithOne(ps => ps.Loan)
