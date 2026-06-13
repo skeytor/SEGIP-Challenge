@@ -14,4 +14,8 @@
     <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="8.0.11" />
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\Core\FinTech.Domain\FinTech.Domain.csproj" />
+  </ItemGroup>
+
 </Project>
