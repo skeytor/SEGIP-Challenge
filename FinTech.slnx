@@ -8,7 +8,9 @@
     <Project Path="src/Core/FinTech.Application/FinTech.Application.csproj" />
     <Project Path="src/Core/FinTech.Domain/FinTech.Domain.csproj" />
   </Folder>
-  <Folder Name="/tests/" />
+  <Folder Name="/tests/">
+    <Project Path="tests/FinTech.Tests/FinTech.Tests.csproj" />
+  </Folder>
   <Project Path="docker-compose.dcproj">
     <Build />
   </Project>
