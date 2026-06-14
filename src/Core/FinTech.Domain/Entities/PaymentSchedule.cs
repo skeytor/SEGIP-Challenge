@@ -1,8 +1,7 @@
 namespace FinTech.Domain.Entities;
 
-public class PaymentSchedule
+public class PaymentSchedule : BaseEntity<Guid>
 {
-    public Guid Id { get; set; }
     public Guid LoanId { get; set; }
     public int PaymentNumber { get; set; }
     public DateTime DueDate { get; set; }

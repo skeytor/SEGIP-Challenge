@@ -1,8 +1,7 @@
 namespace FinTech.Domain.Entities;
 
-public class Transaction
+public class Transaction : BaseEntity<Guid>
 {
-    public Guid Id { get; set; }
     public string IdempotencyKey { get; set; } = null!;
     public TransactionType Type { get; set; }
     public decimal Amount { get; set; }

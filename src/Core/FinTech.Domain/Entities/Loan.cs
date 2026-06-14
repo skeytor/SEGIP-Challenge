@@ -1,8 +1,7 @@
 namespace FinTech.Domain.Entities;
 
-public class Loan
+public class Loan : BaseEntity<Guid>
 {
-    public Guid Id { get; set; }
     public string UserId { get; set; } = null!;
     public decimal Amount { get; set; }
     public int Term { get; set; } // Months
