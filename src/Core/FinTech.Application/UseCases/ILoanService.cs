@@ -15,7 +15,7 @@ public interface ILoanService
     /// </summary>
     /// <param name="request"></param>
     /// <returns>The payment schedule.</returns>
-    Task<Result<IEnumerable<PaymentInstallment>>> SimulateAsync(SimulateLoanRequest request);
+    Task<Result<SimulateLoanResponse>> SimulateAsync(SimulateLoanRequest request);
 
     /// <summary>
     /// Processes a loan application, performing necessary validations and returning the result of the application.

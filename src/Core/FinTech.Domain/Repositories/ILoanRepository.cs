@@ -5,8 +5,12 @@ namespace FinTech.Domain.Repositories;
 
 public interface ILoanRepository : IRepository<Loan, Guid>
 {
-    Task<IReadOnlyCollection<TResult>> GetWithScheduleAsync<TResult>(
+    Task<TResult?> GetWithScheduleAsync<TResult>(
         Guid id,
+        Expression<Func<Loan, TResult>> selector,
+        CancellationToken ct = default);
+    Task<IReadOnlyCollection<TResult>> GetAllAsync<TResult>(
+        string userId,
         Expression<Func<Loan, TResult>> selector,
         CancellationToken ct = default);
     Task<int> CountActiveByUserIdAsync(string userId);

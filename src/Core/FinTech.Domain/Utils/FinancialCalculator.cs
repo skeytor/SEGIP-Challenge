@@ -76,7 +76,7 @@ public static class FinancialCalculator
 
             schedule.Add(new PaymentInstallment(
                 PaymentNumber: i,
-                DueDate: firstPaymentDate.AddMonths(i),
+                DueDate: firstPaymentDate.AddMonths(i - 1),
                 TotalPayment: monthlyPayment,
                 Principal: principal,
                 Interest: interest,

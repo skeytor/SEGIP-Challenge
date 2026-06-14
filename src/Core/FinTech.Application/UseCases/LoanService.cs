@@ -20,23 +20,42 @@ internal sealed class LoanService(ILoanRepository repo, IUnitOfWork uow) : ILoan
     private const decimal MinLoanAmount = 500;
     private const decimal MaxLoanAmount = 50_000;
 
-    public Task<Result<IEnumerable<PaymentInstallment>>> SimulateAsync(SimulateLoanRequest request)
+    public Task<Result<SimulateLoanResponse>> SimulateAsync(SimulateLoanRequest request)
     {
-        ValidateAmountAndTerm(request.Amount, request.TermMonths);
+        Result validationResult = ValidateAmountAndTerm(request.Amount, request.TermMonths);
+        if (!validationResult.IsSuccess)
+        {
+            return Task.FromResult(Result.Failure<SimulateLoanResponse>(validationResult.Error));
+        }
 
         DateTime firstPaymentDate = DateTime.Today.AddMonths(1);
+        decimal monthlyRate = FinancialCalculator.GetMonthlyRate(AnnualInterestRate);
+        decimal monthlyPayment = FinancialCalculator.CalculateFixedMonthlyPayment(request.Amount, monthlyRate, request.TermMonths);
+
         List<PaymentInstallment> schedule = FinancialCalculator.GenerateFixedSchedule(
             request.Amount,
             AnnualInterestRate,
             request.TermMonths,
             firstPaymentDate);
 
-        return Task.FromResult(Result.Success<IEnumerable<PaymentInstallment>>(schedule));
+        SimulateLoanResponse response = new(
+            Amount: request.Amount,
+            TermMonths: request.TermMonths,
+            AnnualInterestRate: AnnualInterestRate,
+            MonthlyPayment: monthlyPayment,
+            LoanType: request.LoanType,
+            Schedule: schedule);
+
+        return Task.FromResult(Result.Success(response));
     }
 
     public async Task<Result<LoanResponse>> ApplyForLoanAsync(ApplyForLoanRequest request)
     {
-        ValidateAmountAndTerm(request.Amount, request.TermMonths);
+        Result validationResult = ValidateAmountAndTerm(request.Amount, request.TermMonths);
+        if (!validationResult.IsSuccess)
+        {
+            return Result.Failure<LoanResponse>(validationResult.Error);
+        }
 
         // An user must have maximum 3 active loans
         int activeLoanCount = await repo.CountActiveByUserIdAsync(CurrentUserId);
@@ -113,7 +132,7 @@ internal sealed class LoanService(ILoanRepository repo, IUnitOfWork uow) : ILoan
 
         return loan.ToResponse();
     }
-    public async Task<Result<IReadOnlyCollection<LoanResponse>>> GetLoansAsync(string? userId)
+    public async Task<Result<IReadOnlyCollection<LoanResponse>>> GetLoansAsync(string userId)
     {
         IReadOnlyCollection<LoanResponse> loans = await repo.GetAllAsync<LoanResponse>(userId, selector: loan =>
             new(loan.Id,
@@ -141,15 +160,22 @@ internal sealed class LoanService(ILoanRepository repo, IUnitOfWork uow) : ILoan
         return loan.ToResponse();
     }
 
-    private static void ValidateAmountAndTerm(decimal amount, int termMonths)
+    private static Result ValidateAmountAndTerm(decimal amount, int termMonths)
     {
         if (amount < MinLoanAmount || amount > MaxLoanAmount)
         {
-            throw new ArgumentOutOfRangeException(nameof(amount), $"The loan amount must be between {MinLoanAmount:C} and {MaxLoanAmount:C}.");
+            return Result.Failure(Error.Validation(
+                "Loan.InvalidAmount",
+                $"The loan amount must be between {MinLoanAmount:C} and {MaxLoanAmount:C}."));
         }
+
         if (termMonths < MinTermMonths || termMonths > MaxTermMonths)
         {
-            throw new ArgumentOutOfRangeException(nameof(termMonths), $"The loan term must be between {MinTermMonths} and {MaxTermMonths} months.");
+            return Result.Failure(Error.Validation(
+                "Loan.InvalidTerm",
+                $"The loan term must be between {MinTermMonths} and {MaxTermMonths} months."));
         }
+
+        return Result.Success();
     }
 }
