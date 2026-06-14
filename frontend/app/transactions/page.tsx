@@ -1,6 +1,7 @@
 import { transactionService } from "@/services/transaction-service";
 import TransactionList from "@/components/TransactionList";
 import TransactionFilters from "@/components/TransactionFilters";
+import CreateTransactionForm from "@/components/CreateTransactionForm";
 import { TransactionStatus, TransactionType } from "@/types/transaction";
 
 export const dynamic = "force-dynamic";
@@ -26,7 +27,10 @@ export default async function TransactionsPage({ searchParams }: Props) {
 
   return (
     <div>
-      <h1 className="text-2xl font-bold text-gray-900 mb-6">Transacciones</h1>
+      <div className="flex items-center justify-between mb-6">
+        <h1 className="text-2xl font-bold text-gray-900">Transacciones</h1>
+        <CreateTransactionForm />
+      </div>
       <TransactionFilters defaultType={type} defaultStatus={status} />
       <TransactionList transactions={transactions} />
     </div>
