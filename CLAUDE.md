@@ -79,12 +79,44 @@ All service methods return `Result<T>` (from `SharedKernel.Results`). Controller
 
 Entity configurations live in `FinTech.Persistence/Configurations/` and are picked up via `ApplyConfigurationsFromAssembly`. Table names are centralized in `Helpers/TableNames.cs`. `TransactionConfiguration` sets a **unique index on `IdempotencyKey`** — enforce this at the DB level, not only in application code.
 
+## Frontend (Next.js)
+
+The `frontend/` directory contains a Next.js 14 app (App Router) built with TypeScript, Tailwind CSS, React Hook Form, and Zod.
+
+### Commands
+
+```bash
+cd frontend
+
+# Dev server (http://localhost:3000)
+npm run dev
+
+# Build
+npm run build
+
+# Lint
+npm run lint
+```
+
+### API connection
+
+`frontend/lib/api.ts` exports a thin `api` helper (`get`, `post`, `patch`) that wraps `fetch`. The base URL defaults to `http://localhost:8080` and is overridden by `NEXT_PUBLIC_API_URL`. Errors are surfaced as `ApiError(status, message)` using the `detail` field from ProblemDetails responses.
+
+### Structure
+
+| Path | Role |
+|---|---|
+| `app/` | Next.js App Router pages (`/`, `/loans`, `/loans/[id]`, `/loans/simulate`, `/transactions`) |
+| `components/` | Client components: `LoanList`, `LoanSimulator`, `PaymentScheduleTable`, `TransactionList`, `TransactionFilters` |
+| `services/` | `loan-service.ts`, `transaction-service.ts` — thin wrappers over `api` that map to backend endpoints |
+| `types/` | `loan.ts`, `transaction.ts` — TypeScript interfaces matching backend DTOs |
+| `lib/api.ts` | Shared fetch wrapper |
+
+Pages that fetch on the server use `export const dynamic = "force-dynamic"` to avoid caching stale loan/transaction data. All mutation forms live in client components under `components/`.
+
 ## Pending / Not yet implemented
 
 - `Transaction` endpoints (POST /api/transactions, GET /api/transactions, GET /api/transactions/{id})
 - Loan schedule endpoint (GET /api/loans/{id}/schedule)
 - Approve/reject endpoints (PATCH /api/loans/{id}/approve, PATCH /api/loans/{id}/reject)
 - Idempotency check logic in transaction processing
-- Seed data
-- Tests (xUnit project not yet created)
-- Frontend (Next.js — separate repo/folder, not yet started)
