@@ -1,13 +1,6 @@
 import type { Metadata } from "next";
-import localFont from "next/font/local";
 import Link from "next/link";
 import "./globals.css";
-
-const geistSans = localFont({
-  src: "./fonts/GeistVF.woff",
-  variable: "--font-geist-sans",
-  weight: "100 900",
-});
 
 export const metadata: Metadata = {
   title: "SGIP - Sistema de Gestión de Préstamos",
@@ -19,9 +12,7 @@ export default function RootLayout({
 }: Readonly<{ children: React.ReactNode }>) {
   return (
     <html lang="es">
-      <body
-        className={`${geistSans.variable} antialiased bg-gray-50 min-h-screen`}
-      >
+      <body className="antialiased bg-gray-50 min-h-screen">
         <nav className="bg-white border-b border-gray-200 px-6 py-4">
           <div className="max-w-5xl mx-auto flex items-center gap-8">
             <Link href="/" className="font-bold text-lg text-blue-600">
