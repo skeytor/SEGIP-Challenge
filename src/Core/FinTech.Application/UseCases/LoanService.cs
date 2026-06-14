@@ -1,6 +1,6 @@
 ﻿using FinTech.Application.DTOs.Requests;
 using FinTech.Application.DTOs.Responses;
-using FinTech.Application.Mappers;
+using FinTech.Application.Extensions.Mappers;
 using FinTech.Domain.Entities;
 using FinTech.Domain.Repositories;
 using FinTech.Domain.Utils;
@@ -9,7 +9,7 @@ using SharedKernel.UnitOfWork;
 
 namespace FinTech.Application.UseCases;
 
-internal sealed class LoanService(ILoanRepository repo, IUnitOfWork uow) : ILoanService
+internal sealed class LoanService(ILoanRepository repo, IRepository<Transaction, Guid> transactionRepo, IUnitOfWork uow) : ILoanService
 {
     private const string CurrentUserId = "user-hardcoded-001";
     private const decimal AnnualInterestRate = 0.24m; // 24% annual effective rate (TEA)
@@ -157,6 +157,85 @@ internal sealed class LoanService(ILoanRepository repo, IUnitOfWork uow) : ILoan
         {
             return Result.Failure<LoanResponse>(Error.NotFound("Loan.NotFound", "The specified loan was not found."));
         }
+        return loan.ToResponse();
+    }
+
+    public async Task<Result<IReadOnlyCollection<PaymentScheduleResponse>>> GetScheduleAsync(Guid loanId)
+    {
+        bool loanExists = await repo.GetByIdAsync(loanId) is not null;
+        if (!loanExists)
+        {
+            return Result.Failure<IReadOnlyCollection<PaymentScheduleResponse>>(
+                Error.NotFound("Loan.NotFound", "The specified loan was not found."));
+        }
+
+        IReadOnlyCollection<PaymentScheduleResponse> schedule = await repo.GetScheduleByLoanIdAsync(
+            loanId,
+            selector: s => new PaymentScheduleResponse(
+                s.PaymentNumber,
+                s.DueDate,
+                s.TotalPayment,
+                s.Principal,
+                s.Interest,
+                s.RemainingBalance,
+                s.Status));
+
+        return Result.Success(schedule);
+    }
+
+    public async Task<Result<LoanResponse>> ApproveAsync(Guid loanId)
+    {
+        Loan? loan = await repo.GetByIdAsync(loanId);
+
+        if (loan is null)
+        {
+            return Result.Failure<LoanResponse>(Error.NotFound("Loan.NotFound", "The specified loan was not found."));
+        }
+
+        if (loan.Status != LoanStatus.Pending)
+        {
+            return Result.Failure<LoanResponse>(Error.Conflict(
+                "Loan.InvalidStatus",
+                $"Only pending loans can be approved. Current status: {loan.Status}."));
+        }
+
+        loan.Status = LoanStatus.Approved;
+        loan.UpdatedAt = DateTime.UtcNow;
+
+        Transaction disbursement = new()
+        {
+            IdempotencyKey = $"disbursement-{loanId}",
+            Type = TransactionType.Disbursement,
+            Amount = loan.Amount,
+            Status = TransactionStatus.Completed,
+            LoanId = loanId,
+            Description = $"Loan disbursement for loan {loanId}",
+            CreatedAt = DateTime.UtcNow,
+        };
+
+        transactionRepo.Insert(disbursement);
+        await uow.SaveChangesAsync();
+
+        return loan.ToResponse();
+    }
+
+    public async Task<Result<LoanResponse>> RejectAsync(Guid loanId)
+    {
+        Loan? loan = await repo.GetByIdAsync(loanId);
+
+        if (loan is null)
+            return Result.Failure<LoanResponse>(Error.NotFound("Loan.NotFound", "The specified loan was not found."));
+
+        if (loan.Status != LoanStatus.Pending)
+            return Result.Failure<LoanResponse>(Error.Conflict(
+                "Loan.InvalidStatus",
+                $"Only pending loans can be rejected. Current status: {loan.Status}."));
+
+        loan.Status = LoanStatus.Rejected;
+        loan.UpdatedAt = DateTime.UtcNow;
+
+        await uow.SaveChangesAsync();
+
         return loan.ToResponse();
     }
 

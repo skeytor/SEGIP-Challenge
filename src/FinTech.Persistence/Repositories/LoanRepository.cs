@@ -7,8 +7,11 @@ namespace FinTech.Persistence.Repositories;
 
 internal sealed class LoanRepository(AppDbContext context) : Repository<Loan, Guid>(context), ILoanRepository
 {
-    public Task<int> CountActiveByUserIdAsync(string userId) => 
-        Context.Loans.AsNoTracking().CountAsync(l => l.UserId == userId && l.Status == LoanStatus.Active);
+    public Task<int> CountActiveByUserIdAsync(string userId) =>
+        Context.Loans.AsNoTracking().CountAsync(l => l.UserId == userId &&
+            (l.Status == LoanStatus.Pending ||
+             l.Status == LoanStatus.Approved ||
+             l.Status == LoanStatus.Active));
 
     public async Task<IReadOnlyCollection<TResult>> GetAllAsync<TResult>(
         string? userId,
@@ -24,18 +27,22 @@ internal sealed class LoanRepository(AppDbContext context) : Repository<Loan, Gu
         return await root.Select(selector).ToListAsync(ct);
     }
 
-    public Task<TResult?> GetWithScheduleAsync<TResult>(
-        Guid id,
-        Expression<Func<Loan, TResult>> selector,
-        CancellationToken ct = default) => 
-            Context.Loans.AsNoTracking()
-                .Where(l => l.Id == id)
-                .Include(l => l.PaymentSchedules)
-                .Select(selector)
-                .FirstOrDefaultAsync(ct);
+    public async Task<IReadOnlyCollection<TResult>> GetScheduleByLoanIdAsync<TResult>(
+        Guid loanId,
+        Expression<Func<PaymentSchedule, TResult>> selector,
+        CancellationToken ct = default) =>
+        await Context.PaymentSchedules
+            .AsNoTracking()
+            .Where(s => s.LoanId == loanId)
+            .OrderBy(s => s.PaymentNumber)
+            .Select(selector)
+            .ToListAsync(ct);
 
-    public Task<decimal> SumMonthlyPaymentByUserIdAsync(string userId, CancellationToken ct = default) => 
+    public Task<decimal> SumMonthlyPaymentByUserIdAsync(string userId, CancellationToken ct = default) =>
         Context.Loans.AsNoTracking()
-            .Where(l => l.UserId == userId && (l.Status == LoanStatus.Active))
+            .Where(l => l.UserId == userId &&
+                (l.Status == LoanStatus.Pending ||
+                 l.Status == LoanStatus.Approved ||
+                 l.Status == LoanStatus.Active))
             .SumAsync(l => l.MonthlyPayment, ct);
 }
