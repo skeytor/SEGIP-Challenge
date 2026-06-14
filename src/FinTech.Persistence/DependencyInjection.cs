@@ -1,5 +1,6 @@
 ﻿using FinTech.Domain.Repositories;
 using FinTech.Persistence.Repositories;
+using FinTech.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -21,8 +22,9 @@ public static class DependencyInjection
             .AddScoped<IUnitOfWork>(provider => provider.GetRequiredService<AppDbContext>())
             .AddRepositories();
 
-    internal static IServiceCollection AddRepositories(this IServiceCollection services) => 
+    internal static IServiceCollection AddRepositories(this IServiceCollection services) =>
         services
             .AddScoped(typeof(IRepository<,>), typeof(Repository<,>))
-            .AddScoped<ILoanRepository, LoanRepository>();
+            .AddScoped<ILoanRepository, LoanRepository>()
+            .AddScoped<ITransactionRepository, TransactionRepository>();
 }
