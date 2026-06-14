@@ -6,7 +6,7 @@ export default function Home() {
       <div>
         <h1 className="text-4xl font-bold text-gray-900">SGIP</h1>
         <p className="mt-2 text-gray-500 text-lg">
-          Sistema de Gestion de Inversiones y Préstamos
+          Sistema de Gestion de Inversiones y Prestamos
         </p>
       </div>
 
@@ -15,7 +15,6 @@ export default function Home() {
           href="/loans/simulate"
           className="flex flex-col gap-1 p-6 bg-white rounded-xl border border-gray-200 hover:border-blue-400 hover:shadow-sm transition-all"
         >
-          <span className="text-2xl">🧮</span>
           <span className="font-semibold text-gray-800">Simulador</span>
           <span className="text-sm text-gray-500">
             Calcula tu cuota mensual y cronograma de pagos
@@ -26,7 +25,6 @@ export default function Home() {
           href="/loans"
           className="flex flex-col gap-1 p-6 bg-white rounded-xl border border-gray-200 hover:border-blue-400 hover:shadow-sm transition-all"
         >
-          <span className="text-2xl">📋</span>
           <span className="font-semibold text-gray-800">Prestamos</span>
           <span className="text-sm text-gray-500">
             Revisa el estado de las solicitudes
@@ -37,7 +35,6 @@ export default function Home() {
           href="/transactions"
           className="flex flex-col gap-1 p-6 bg-white rounded-xl border border-gray-200 hover:border-blue-400 hover:shadow-sm transition-all sm:col-span-2"
         >
-          <span className="text-2xl">💳</span>
           <span className="font-semibold text-gray-800">Transacciones</span>
           <span className="text-sm text-gray-500">
             Historial de desembolsos y pagos

@@ -33,7 +33,10 @@ interface Props {
   defaultStatus?: TransactionStatus;
 }
 
-export default function TransactionFilters({ defaultType, defaultStatus }: Props) {
+export default function TransactionFilters({
+  defaultType,
+  defaultStatus,
+}: Props) {
   const router = useRouter();
 
   const { register, handleSubmit } = useForm<FiltersFields>({
@@ -48,6 +51,7 @@ export default function TransactionFilters({ defaultType, defaultStatus }: Props
     const params = new URLSearchParams();
     if (data.type) params.set("type", data.type);
     if (data.status) params.set("status", data.status);
+
     const qs = params.size > 0 ? `?${params.toString()}` : "";
     router.push(`/transactions${qs}`);
   }
@@ -63,7 +67,9 @@ export default function TransactionFilters({ defaultType, defaultStatus }: Props
       >
         <option value="">Todos los tipos</option>
         {TYPES.map((t) => (
-          <option key={t} value={t}>{typeLabel[t]}</option>
+          <option key={t} value={t}>
+            {typeLabel[t]}
+          </option>
         ))}
       </select>
 
@@ -73,7 +79,9 @@ export default function TransactionFilters({ defaultType, defaultStatus }: Props
       >
         <option value="">Todos los estados</option>
         {STATUSES.map((s) => (
-          <option key={s} value={s}>{statusLabel[s]}</option>
+          <option key={s} value={s}>
+            {statusLabel[s]}
+          </option>
         ))}
       </select>
 

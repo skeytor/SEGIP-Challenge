@@ -20,7 +20,9 @@ export default async function TransactionsPage({ searchParams }: Props) {
     ? (searchParams.status as TransactionStatus)
     : undefined;
 
-  const transactions = await transactionService.getAll({ type, status }).catch(() => []);
+  const transactions = await transactionService
+    .getAll({ type, status })
+    .catch(() => []);
 
   return (
     <div>

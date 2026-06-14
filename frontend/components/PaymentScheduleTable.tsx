@@ -40,17 +40,29 @@ export default function PaymentScheduleTable({ schedule }: Props) {
               const status = (row as PaymentScheduleResponse).status;
               return (
                 <tr key={row.paymentNumber} className="hover:bg-gray-50">
-                  <td className="px-4 py-2 text-gray-500">{row.paymentNumber}</td>
+                  <td className="px-4 py-2 text-gray-500">
+                    {row.paymentNumber}
+                  </td>
                   <td className="px-4 py-2 text-right text-gray-600">
                     {new Date(row.dueDate).toLocaleDateString("es")}
                   </td>
-                  <td className="px-4 py-2 text-right font-medium">${row.totalPayment.toFixed(2)}</td>
-                  <td className="px-4 py-2 text-right">${row.principal.toFixed(2)}</td>
-                  <td className="px-4 py-2 text-right">${row.interest.toFixed(2)}</td>
-                  <td className="px-4 py-2 text-right">${row.remainingBalance.toFixed(2)}</td>
+                  <td className="px-4 py-2 text-right font-medium">
+                    ${row.totalPayment.toFixed(2)}
+                  </td>
+                  <td className="px-4 py-2 text-right">
+                    ${row.principal.toFixed(2)}
+                  </td>
+                  <td className="px-4 py-2 text-right">
+                    ${row.interest.toFixed(2)}
+                  </td>
+                  <td className="px-4 py-2 text-right">
+                    ${row.remainingBalance.toFixed(2)}
+                  </td>
                   <td className="px-4 py-2 text-center">
                     {status && (
-                      <span className={`inline-block px-2 py-0.5 rounded-full text-xs font-medium ${statusClass[status] ?? "bg-gray-100 text-gray-600"}`}>
+                      <span
+                        className={`inline-block px-2 py-0.5 rounded-full text-xs font-medium ${statusClass[status] ?? "bg-gray-100 text-gray-600"}`}
+                      >
                         {statusLabel[status] ?? status}
                       </span>
                     )}

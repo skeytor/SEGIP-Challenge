@@ -11,16 +11,16 @@ import { ApiError } from "@/lib/api";
 
 const simulatorSchema = z.object({
   amount: z
-    .number({ error: "Ingresa un monto válido" })
-    .min(500, "Monto mínimo: $500")
-    .max(50000, "Monto máximo: $50,000"),
+    .number({ error: "Ingresa un monto valido" })
+    .min(500, "Monto minimo: $500")
+    .max(50000, "Monto maximo: $50,000"),
   termMonths: z
-    .number({ error: "Ingresa un plazo válido" })
-    .int("El plazo debe ser un número entero")
-    .min(6, "Plazo mínimo: 6 meses")
-    .max(60, "Plazo máximo: 60 meses"),
+    .number({ error: "Ingresa un plazo valido" })
+    .int("El plazo debe ser un numero entero")
+    .min(6, "Plazo minimo: 6 meses")
+    .max(60, "Plazo maximo: 60 meses"),
   monthlyIncome: z
-    .number({ error: "Ingresa un ingreso válido" })
+    .number({ error: "Ingresa un ingreso valido" })
     .positive("Debe ser mayor a 0")
     .optional(),
 });
@@ -116,7 +116,9 @@ export default function LoanSimulator() {
               type="number"
               step="0.01"
               placeholder="Opcional"
-              {...register("monthlyIncome", { setValueAs: (v) => v === "" ? undefined : Number(v) })}
+              {...register("monthlyIncome", {
+                setValueAs: (v) => (v === "" ? undefined : Number(v)),
+              })}
               className={inputClass(!!errors.monthlyIncome)}
             />
           </Field>
@@ -140,16 +142,37 @@ export default function LoanSimulator() {
       {result && (
         <div className="space-y-6">
           <div className="bg-white rounded-xl border border-gray-200 p-6">
-            <h2 className="font-semibold text-gray-800 text-lg mb-4">Resumen</h2>
+            <h2 className="font-semibold text-gray-800 text-lg mb-4">
+              Resumen
+            </h2>
             {(() => {
-              const totalPayment = result.schedule.reduce((s, r) => s + r.totalPayment, 0);
-              const totalInterest = result.schedule.reduce((s, r) => s + r.interest, 0);
+              const totalPayment = result.schedule.reduce(
+                (s, r) => s + r.totalPayment,
+                0,
+              );
+              const totalInterest = result.schedule.reduce(
+                (s, r) => s + r.interest,
+                0,
+              );
               return (
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-                  <Stat label="Cuota mensual" value={`$${result.monthlyPayment.toFixed(2)}`} highlight />
-                  <Stat label="Total a pagar" value={`$${totalPayment.toFixed(2)}`} />
-                  <Stat label="Total intereses" value={`$${totalInterest.toFixed(2)}`} />
-                  <Stat label="TEA" value={`${(result.annualInterestRate * 100).toFixed(0)}%`} />
+                  <Stat
+                    label="Cuota mensual"
+                    value={`$${result.monthlyPayment.toFixed(2)}`}
+                    highlight
+                  />
+                  <Stat
+                    label="Total a pagar"
+                    value={`$${totalPayment.toFixed(2)}`}
+                  />
+                  <Stat
+                    label="Total intereses"
+                    value={`$${totalInterest.toFixed(2)}`}
+                  />
+                  <Stat
+                    label="TEA"
+                    value={`${(result.annualInterestRate * 100).toFixed(0)}%`}
+                  />
                 </div>
               );
             })()}
@@ -160,7 +183,11 @@ export default function LoanSimulator() {
                 disabled={applying || applied}
                 className="bg-green-600 hover:bg-green-700 disabled:opacity-50 text-white font-semibold px-6 py-2 rounded-lg text-sm transition-colors"
               >
-                {applied ? "✓ Solicitud enviada" : applying ? "Enviando..." : "Solicitar préstamo"}
+                {applied
+                  ? "✓ Solicitud enviada"
+                  : applying
+                    ? "Enviando..."
+                    : "Solicitar préstamo"}
               </button>
             </div>
           </div>
@@ -202,11 +229,21 @@ function Field({
   );
 }
 
-function Stat({ label, value, highlight }: { label: string; value: string; highlight?: boolean }) {
+function Stat({
+  label,
+  value,
+  highlight,
+}: {
+  label: string;
+  value: string;
+  highlight?: boolean;
+}) {
   return (
     <div className="flex flex-col gap-0.5">
       <span className="text-xs text-gray-500">{label}</span>
-      <span className={`font-semibold text-lg ${highlight ? "text-blue-600" : "text-gray-800"}`}>
+      <span
+        className={`font-semibold text-lg ${highlight ? "text-blue-600" : "text-gray-800"}`}
+      >
         {value}
       </span>
     </div>

@@ -25,9 +25,12 @@ export default function LoanList({ loans }: Props) {
   if (loans.length === 0) {
     return (
       <div className="text-center py-16 text-gray-400">
-        <p className="text-lg">No tienes préstamos aún.</p>
-        <Link href="/loans/simulate" className="mt-2 inline-block text-blue-600 hover:underline text-sm">
-          Simular un préstamo →
+        <p className="text-lg">No hay prestamos aun.</p>
+        <Link
+          href="/loans/simulate"
+          className="mt-2 inline-block text-blue-600 hover:underline text-sm"
+        >
+          Simular un prestamo
         </Link>
       </div>
     );
@@ -42,14 +45,20 @@ export default function LoanList({ loans }: Props) {
           className="flex items-center justify-between bg-white rounded-xl border border-gray-200 px-5 py-4 hover:border-blue-300 hover:shadow-sm transition-all"
         >
           <div className="flex flex-col gap-0.5">
-            <span className="font-semibold text-gray-800">${loan.amount.toLocaleString("es")}</span>
-            <span className="text-sm text-gray-500">{loan.termMonths} meses · ${loan.monthlyPayment.toFixed(2)}/mes</span>
+            <span className="font-semibold text-gray-800">
+              ${loan.amount.toLocaleString("es")}
+            </span>
+            <span className="text-sm text-gray-500">
+              {loan.termMonths} meses · ${loan.monthlyPayment.toFixed(2)}/mes
+            </span>
           </div>
           <div className="flex items-center gap-3">
             <span className="text-xs text-gray-400">
               {new Date(loan.createdAt).toLocaleDateString("es")}
             </span>
-            <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${statusClass[loan.status]}`}>
+            <span
+              className={`px-2 py-0.5 rounded-full text-xs font-medium ${statusClass[loan.status]}`}
+            >
               {statusLabel[loan.status]}
             </span>
           </div>

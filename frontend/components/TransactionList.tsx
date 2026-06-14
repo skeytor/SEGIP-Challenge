@@ -1,4 +1,8 @@
-import { TransactionResponse, TransactionStatus, TransactionType } from "@/types/transaction";
+import {
+  TransactionResponse,
+  TransactionStatus,
+  TransactionType,
+} from "@/types/transaction";
 
 interface Props {
   transactions: TransactionResponse[];
@@ -38,7 +42,7 @@ export default function TransactionList({ transactions }: Props) {
           <thead className="bg-gray-50 text-gray-500 uppercase text-xs">
             <tr>
               <th className="px-4 py-3 text-left">Tipo</th>
-              <th className="px-4 py-3 text-left">Descripción</th>
+              <th className="px-4 py-3 text-left">Descripcion</th>
               <th className="px-4 py-3 text-right">Monto</th>
               <th className="px-4 py-3 text-center">Estado</th>
               <th className="px-4 py-3 text-right">Fecha</th>
@@ -51,9 +55,13 @@ export default function TransactionList({ transactions }: Props) {
                   {typeLabel[tx.type] ?? tx.type}
                 </td>
                 <td className="px-4 py-3 text-gray-500">{tx.description}</td>
-                <td className="px-4 py-3 text-right font-semibold">${tx.amount.toFixed(2)}</td>
+                <td className="px-4 py-3 text-right font-semibold">
+                  ${tx.amount.toFixed(2)}
+                </td>
                 <td className="px-4 py-3 text-center">
-                  <span className={`inline-block px-2 py-0.5 rounded-full text-xs font-medium ${statusClass[tx.status]}`}>
+                  <span
+                    className={`inline-block px-2 py-0.5 rounded-full text-xs font-medium ${statusClass[tx.status]}`}
+                  >
                     {statusLabel[tx.status]}
                   </span>
                 </td>
