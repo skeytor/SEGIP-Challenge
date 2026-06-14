@@ -56,7 +56,7 @@ export default function CreateTransactionForm() {
         onClick={() => setOpen(true)}
         className="bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold px-4 py-2 rounded-lg transition-colors"
       >
-        + Nueva transaccion
+        + Simular transaccion
       </button>
     );
   }

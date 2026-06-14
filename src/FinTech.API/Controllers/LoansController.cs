@@ -44,7 +44,7 @@ public class LoansController : ControllerBase
         [FromServices] ICommandHandler<ApplyForLoanCommand, LoanResponse> handler,
         CancellationToken ct)
     {
-        var command = new ApplyForLoanCommand(request.Amount, "user-hardcoded", request.TermMonths, LoanType.Fixed, null);
+        var command = new ApplyForLoanCommand(request.Amount, "user-hardcoded-002", request.TermMonths, LoanType.Fixed, null);
         var result = await  handler.HandleAsync(command, ct);
         return result.Match<ActionResult>(
             onSuccess: Ok,
