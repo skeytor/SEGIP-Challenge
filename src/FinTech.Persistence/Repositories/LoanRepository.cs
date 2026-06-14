@@ -11,7 +11,7 @@ internal sealed class LoanRepository(AppDbContext context) : Repository<Loan, Gu
         Context.Loans.AsNoTracking().CountAsync(l => l.UserId == userId && l.Status == LoanStatus.Active);
 
     public async Task<IReadOnlyCollection<TResult>> GetAllAsync<TResult>(
-        string userId,
+        string? userId,
         Expression<Func<Loan, TResult>> selector,
         CancellationToken ct = default)
     {

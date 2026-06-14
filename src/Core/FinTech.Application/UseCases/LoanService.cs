@@ -132,7 +132,7 @@ internal sealed class LoanService(ILoanRepository repo, IUnitOfWork uow) : ILoan
 
         return loan.ToResponse();
     }
-    public async Task<Result<IReadOnlyCollection<LoanResponse>>> GetLoansAsync(string userId)
+    public async Task<Result<IReadOnlyCollection<LoanResponse>>> GetLoansAsync(string? userId)
     {
         IReadOnlyCollection<LoanResponse> loans = await repo.GetAllAsync<LoanResponse>(userId, selector: loan =>
             new(loan.Id,

@@ -10,7 +10,7 @@ public interface ILoanRepository : IRepository<Loan, Guid>
         Expression<Func<Loan, TResult>> selector,
         CancellationToken ct = default);
     Task<IReadOnlyCollection<TResult>> GetAllAsync<TResult>(
-        string userId,
+        string? userId,
         Expression<Func<Loan, TResult>> selector,
         CancellationToken ct = default);
     Task<int> CountActiveByUserIdAsync(string userId);

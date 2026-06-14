@@ -1,9 +1,10 @@
 ﻿using FinTech.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
+using SharedKernel.UnitOfWork;
 
 namespace FinTech.Persistence;
 
-public sealed class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(options)
+public sealed class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(options), IUnitOfWork
 {
     public DbSet<Loan> Loans => Set<Loan>();
     public DbSet<PaymentSchedule> PaymentSchedules => Set<PaymentSchedule>();
