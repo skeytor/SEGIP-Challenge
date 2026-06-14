@@ -1,4 +1,5 @@
 ﻿using FinTech.Domain.Entities;
+using System.Linq.Expressions;
 
 namespace FinTech.Domain.Repositories;
 
@@ -8,6 +9,10 @@ public interface IRepository<TEntity, in TId>
 {
     Task<TEntity?> GetByIdAsync(TId id, CancellationToken ct = default);
     ValueTask<TEntity?> FindAsync(TId id, CancellationToken ct = default);
-    Task InsertAsync(TEntity entity, CancellationToken ct = default);
+    Task<IReadOnlyCollection<TResult>> GetAllAsync<TResult>(
+        string? userId,
+        Expression<Func<TEntity, TResult>> selector, 
+        CancellationToken ct = default);
+    void Insert(TEntity entity);
     Task<int> CountAsync();
 }

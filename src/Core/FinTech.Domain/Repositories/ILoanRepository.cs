@@ -1,12 +1,13 @@
 ﻿using FinTech.Domain.Entities;
+using System.Linq.Expressions;
 
 namespace FinTech.Domain.Repositories;
 
 public interface ILoanRepository : IRepository<Loan, Guid>
 {
-    Task<IReadOnlyCollection<TResult>> GetAllByUserId<TResult>(string userId);
     Task<IReadOnlyCollection<TResult>> GetWithScheduleAsync<TResult>(
-        Guid loanId, 
+        Guid id,
+        Expression<Func<Loan, TResult>> selector,
         CancellationToken ct = default);
     Task<int> CountActiveByUserIdAsync(string userId);
 
