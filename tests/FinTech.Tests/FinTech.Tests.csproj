@@ -11,8 +11,10 @@
 
   <ItemGroup>
     <PackageReference Include="coverlet.collector" Version="6.0.0" />
+    <PackageReference Include="Microsoft.AspNetCore.Mvc.Testing" Version="8.0.11" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.8.0" />
     <PackageReference Include="Moq" Version="4.20.72" />
+    <PackageReference Include="Testcontainers.PostgreSql" Version="4.12.0" />
     <PackageReference Include="xunit" Version="2.5.3" />
     <PackageReference Include="xunit.runner.visualstudio" Version="2.5.3" />
   </ItemGroup>
@@ -25,6 +27,8 @@
     <ProjectReference Include="..\..\src\Core\FinTech.Application\FinTech.Application.csproj" />
     <ProjectReference Include="..\..\src\Core\FinTech.Domain\FinTech.Domain.csproj" />
     <ProjectReference Include="..\..\src\SharedKernel\SharedKernel.csproj" />
+    <ProjectReference Include="..\..\src\FinTech.Persistence\FinTech.Persistence.csproj" />
+    <ProjectReference Include="..\..\src\FinTech.API\FinTech.API.csproj" />
   </ItemGroup>
 
 </Project>
