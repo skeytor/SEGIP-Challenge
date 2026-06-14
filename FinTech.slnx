@@ -1,5 +1,6 @@
 <Solution>
   <Folder Name="/src/">
+    <Project Path="src/FinTech.API/FinTech.API.csproj" Id="384da98b-f12a-4078-a688-471d71cf6da1" />
     <Project Path="src/FinTech.Persistence/FinTech.Persistence.csproj" />
     <Project Path="src/SharedKernel/SharedKernel.csproj" Id="1f4bb6bd-0724-42e6-ad8b-9ef56182c5f9" />
   </Folder>
@@ -8,4 +9,7 @@
     <Project Path="src/Core/FinTech.Domain/FinTech.Domain.csproj" />
   </Folder>
   <Folder Name="/tests/" />
+  <Project Path="docker-compose.dcproj">
+    <Build />
+  </Project>
 </Solution>
