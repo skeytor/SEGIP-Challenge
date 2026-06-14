@@ -1,6 +1,7 @@
 <Solution>
   <Folder Name="/src/">
     <Project Path="src/FinTech.Persistence/FinTech.Persistence.csproj" />
+    <Project Path="src/SharedKernel/SharedKernel.csproj" Id="1f4bb6bd-0724-42e6-ad8b-9ef56182c5f9" />
   </Folder>
   <Folder Name="/src/Core/">
     <Project Path="src/Core/FinTech.Application/FinTech.Application.csproj" />
