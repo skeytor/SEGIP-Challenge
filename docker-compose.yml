@@ -8,7 +8,6 @@ services:
       ASPNETCORE_ENVIRONMENT: Development
     ports:
       - "8080:8080"
-      - "8081:8081"
     restart: on-failure
     depends_on:
       fintech.db:
@@ -29,3 +28,14 @@ services:
       timeout: 5s
       retries: 10
       start_period: 10s
+
+  fintech.frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    environment:
+      NEXT_PUBLIC_API_URL: http://localhost:8080
+    ports:
+      - "3000:3000"
+    depends_on:
+      - fintech.api
