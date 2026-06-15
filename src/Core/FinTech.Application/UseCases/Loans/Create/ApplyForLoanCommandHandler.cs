@@ -18,7 +18,7 @@ public sealed record ApplyForLoanCommand(
     decimal? MonthlyIncome)
     : ICommand<LoanResponse>;
 
-internal sealed class ApplyForLoanCommandHandler(ILoanRepository repo, IUnitOfWork uow) 
+internal sealed class ApplyForLoanCommandHandler(ILoanRepository repo, ITransactionRepository transactionRepo, IUnitOfWork uow)
     : ICommandHandler<ApplyForLoanCommand, LoanResponse>
 {
     public async Task<Result<LoanResponse>> HandleAsync(ApplyForLoanCommand command, CancellationToken cancellationToken)
@@ -106,6 +106,17 @@ internal sealed class ApplyForLoanCommandHandler(ILoanRepository repo, IUnitOfWo
         {
             loan.Status = LoanStatus.Approved;
             loan.UpdatedAt = DateTime.UtcNow;
+
+            transactionRepo.Insert(new Transaction
+            {
+                IdempotencyKey = $"disbursement-{loan.Id}",
+                Type = TransactionType.Disbursement,
+                Amount = loan.Amount,
+                Status = TransactionStatus.Completed,
+                LoanId = loan.Id,
+                Description = $"Loan disbursement for loan {loan.Id}",
+                CreatedAt = DateTime.UtcNow,
+            });
         }
 
         await uow.SaveChangesAsync();

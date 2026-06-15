@@ -1,14 +1,11 @@
 using FinTech.Domain.Entities;
 using FinTech.Domain.Utils;
-using Microsoft.EntityFrameworkCore;
 using SharedKernel.Utils;
 
 namespace FinTech.Persistence.Seeders;
 
 public static class DbSeeder
 {
-    private const string UserId = "user-hardcoded-001";
-
     public static void Seed(AppDbContext context)
     {
         if (context.Loans.Any())
@@ -50,7 +47,7 @@ public static class DbSeeder
         return new Loan
         {
             Id = Guid.NewGuid(),
-            UserId = UserId,
+            UserId = Guid.NewGuid().ToString(),
             Amount = amount,
             Term = termMonths,
             InterestRate = FinancialConstants.AnnualInterestRate,

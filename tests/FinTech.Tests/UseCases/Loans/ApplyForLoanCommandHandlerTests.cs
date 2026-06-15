@@ -12,12 +12,13 @@ namespace FinTech.Tests.UseCases.Loans;
 public class ApplyForLoanCommandHandlerTests
 {
     private readonly Mock<ILoanRepository> _repoMock = new();
+    private readonly Mock<ITransactionRepository> _transactionRepositoryMock = new();
     private readonly Mock<IUnitOfWork> _uowMock = new();
     private readonly ApplyForLoanCommandHandler _handler;
 
     public ApplyForLoanCommandHandlerTests()
     {
-        _handler = new ApplyForLoanCommandHandler(_repoMock.Object, _uowMock.Object);
+        _handler = new ApplyForLoanCommandHandler(_repoMock.Object, _transactionRepositoryMock.Object, _uowMock.Object);
     }
 
     [Fact]

@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-**SGIP** — Loan Management System (Sistema de Gestión de Inversiones y Préstamos). A .NET 8 Web API backed by PostgreSQL, implementing loan simulation, application, and transaction management with idempotency guarantees.
+**SGIP** — Loan Management System (Sistema de Gestión de Inversiones y Préstamos). A .NET 8 Web API backed by PostgreSQL implementing loan simulation, application, approval flow, and transaction management with idempotency guarantees.
 
 ## Commands
 
@@ -15,8 +15,11 @@ cd src/FinTech.API && dotnet run
 # Build entire solution
 dotnet build FinTech.slnx
 
-# Run tests
+# Run all tests
 dotnet test FinTech.slnx
+
+# Run a single test class
+dotnet test --filter "FullyQualifiedName~ApplyForLoanCommandHandlerTests"
 
 # Add a new EF Core migration (run from solution root)
 dotnet ef migrations add <MigrationName> --project src/FinTech.Persistence --startup-project src/FinTech.API
@@ -25,98 +28,101 @@ dotnet ef migrations add <MigrationName> --project src/FinTech.Persistence --sta
 dotnet ef database update --project src/FinTech.Persistence --startup-project src/FinTech.API
 ```
 
-### Connection string
-
-Set in `src/FinTech.API/appsettings.Development.json` (git-ignored) under `ConnectionStrings:DefaultConnection`. Migrations are applied automatically on startup via `MigrationExtensions.ApplyMigrations()`.
+Connection string is set in `src/FinTech.API/appsettings.Development.json` (git-ignored) under `ConnectionStrings:DefaultConnection`. Migrations apply automatically on startup via `MigrationExtensions.ApplyMigrations()`.
 
 ## Architecture
 
-The solution uses **Clean Architecture** split into four projects:
+Clean Architecture across five projects:
 
-| Project | Role |
-|---|---|
-| `FinTech.Domain` | Entities, enums, repository interfaces, `FinancialCalculator` |
-| `FinTech.Application` | Use-case services (`LoanService`), DTOs, mappers, DI registration |
-| `FinTech.Persistence` | EF Core `AppDbContext`, entity configurations, repository implementations |
-| `FinTech.API` | Controllers, `Program.cs`, startup extensions |
-| `SharedKernel` | `Result<T>`/`Error` types, `IUnitOfWork`, `FinancialCalculator` is also here |
+| Project | Location | Role |
+|---|---|---|
+| `FinTech.Domain` | `src/Core/FinTech.Domain` | Entities, enums, repository interfaces |
+| `FinTech.Application` | `src/Core/FinTech.Application` | Use-case handlers, DTOs, mappers, DI registration |
+| `FinTech.Persistence` | `src/FinTech.Persistence` | EF Core `AppDbContext`, entity configs, repo implementations, seeder |
+| `FinTech.API` | `src/FinTech.API` | Controllers, `Program.cs`, startup extensions |
+| `SharedKernel` | `src/SharedKernel` | `Result<T>`/`Error`, `IUnitOfWork`, `FinancialCalculator`, `FinancialConstants` |
 
-**Dependency direction:** API → Application → Domain ← Persistence (Persistence depends on Domain interfaces).
+**Dependency direction:** API → Application → Domain ← Persistence
 
-### Result pattern
+## CQRS with explicit handler interfaces
 
-All service methods return `Result<T>` (from `SharedKernel.Results`). Controllers call `.Match(onSuccess, onFailure)` to map to `ActionResult`. Never throw exceptions for business rule violations — return `Result.Failure(Error.Validation(...))`.
+The Application layer uses lightweight CQRS — no MediatR. Each use case is a `sealed record` command/query paired with an `internal sealed class` handler. Handlers are registered manually in `FinTech.Application/DependencyInjection.cs` and injected via `[FromServices]` directly in controller action parameters.
 
-### Repository pattern
+```
+ICommand<TResponse>  →  ICommandHandler<TCommand, TResponse>
+IQuery<TResponse>    →  IQueryHandler<TQuery, TResponse>
+```
 
-`IRepository<TEntity, TId>` is the generic base. `ILoanRepository` extends it with projection-based query methods that accept `Expression<Func<Loan, TResult>> selector` to avoid loading full entity graphs unnecessarily. Use `AsNoTracking()` for read-only queries.
+Adding a new use case requires: (1) create the command/query + handler file, (2) register in `DependencyInjection.cs`.
 
-`IUnitOfWork` is implemented by `AppDbContext`. Services inject both `ILoanRepository` and `IUnitOfWork`, then call `uow.SaveChangesAsync()` after mutations.
+## Result pattern
 
-### Financial calculations
+All handlers return `Result<T>` (from `SharedKernel.Results`). Controllers call `.Match(onSuccess, onFailure)` to produce `ActionResult`. Never throw exceptions for business rule violations — return `Result.Failure(Error.Validation(...))`. Available error factories: `Error.Validation`, `Error.NotFound`, `Error.Conflict`, `Error.NullValue`.
 
-`FinancialCalculator` (in `FinTech.Domain/Utils`) is the single source of truth for:
-- `GetMonthlyRate(TEA)` → TEM using `(1 + TEA)^(1/12) - 1`
+## Repository pattern
+
+`IRepository<TEntity, TId>` is the generic base with `Insert` and `GetByIdAsync`. Domain-specific interfaces (`ILoanRepository`, `ITransactionRepository`) extend it with projection-based query methods using `Expression<Func<TEntity, TResult>> selector` to avoid loading full entity graphs. Use `AsNoTracking()` for all read queries.
+
+`IUnitOfWork` is implemented by `AppDbContext`. Handlers inject both a repository and `IUnitOfWork`, then call `uow.SaveChangesAsync()` after mutations.
+
+## Financial calculations
+
+`FinancialCalculator` (in `SharedKernel/Utils`) is the single source of truth:
+- `GetMonthlyRate(TEA)` → TEM = `(1 + TEA)^(1/12) - 1`
 - `CalculateFixedMonthlyPayment(amount, TEM, n)` → French system (cuota fija)
 - `GenerateFixedSchedule(...)` → full amortization table as `List<PaymentInstallment>`
 
-### Business rules hardcoded in `LoanService`
+Constants live in `FinancialConstants`: TEA = 24%, max 3 active loans, max income ratio = 40%, amounts $500–$50,000, terms 6–60 months.
 
-- `CurrentUserId = "user-hardcoded-001"` — no authentication is implemented
-- TEA fixed at **24%**
-- Max **3 active loans** per user
-- Monthly payments must not exceed **40% of declared monthly income**
-- Auto-approval: amount < $10 000 AND fewer than 2 active loans → status set to `Approved` immediately on creation
+## Business rules
 
-### Enums
+- `UserId` is hardcoded as `"user-hardcoded-002"` in `LoansController` — no auth is implemented
+- Auto-approval: amount < $10,000 AND fewer than 2 active loans → status set to `Approved` immediately on creation
+- On manual approval (`PATCH /api/loans/{id}/approve`), `ApproveLoanCommandHandler` automatically creates a `Disbursement` transaction with `IdempotencyKey = $"disbursement-{loanId}"`
+- `CreateTransactionCommandHandler` checks `GetByIdempotencyKeyAsync` before inserting — returns the existing transaction if the key already exists
+
+## Enums
 
 `LoanStatus`: `Pending → Approved | Rejected → Active`  
-`LoanType`: `Fixed | Decreasing` (only Fixed is currently implemented)  
+`LoanType`: `Fixed | Decreasing` (only Fixed implemented)  
 `TransactionType`: `Disbursement | Payment | Transfer`  
 `TransactionStatus`: `Pending | Completed | Failed`
 
-### EF Core configuration
+## EF Core
 
-Entity configurations live in `FinTech.Persistence/Configurations/` and are picked up via `ApplyConfigurationsFromAssembly`. Table names are centralized in `Helpers/TableNames.cs`. `TransactionConfiguration` sets a **unique index on `IdempotencyKey`** — enforce this at the DB level, not only in application code.
+Entity configurations in `FinTech.Persistence/Configurations/` via `ApplyConfigurationsFromAssembly`. Table names centralized in `Helpers/TableNames.cs`. `TransactionConfiguration` enforces a unique index on `IdempotencyKey`. Seed data in `DbSeeder.cs`.
+
+## API endpoints
+
+**Loans** (`/api/loans`):
+- `POST /simulate` — returns schedule without persisting
+- `POST /` — apply for a loan (auto-approves if eligible, does NOT auto-create a disbursement transaction)
+- `GET /` — list all (optional `?userId=` filter)
+- `GET /{id}` — get by ID
+- `GET /{id}/schedule` — payment schedule
+- `PATCH /{id}/approve` — approve + creates Disbursement transaction
+- `PATCH /{id}/reject` — reject
+
+**Transactions** (`/api/transactions`):
+- `POST /` — create with idempotency check on `IdempotencyKey`
+- `GET /` — list all (optional `?type=` and `?status=` filters)
+- `GET /{id}` — get by ID
 
 ## Frontend (Next.js)
 
-The `frontend/` directory contains a Next.js 14 app (App Router) built with TypeScript, Tailwind CSS, React Hook Form, and Zod.
-
-### Commands
+The `frontend/` directory contains a Next.js 14 app (App Router) with TypeScript, Tailwind CSS, React Hook Form, and Zod.
 
 ```bash
 cd frontend
-
-# Dev server (http://localhost:3000)
-npm run dev
-
-# Build
+npm run dev    # http://localhost:3000
 npm run build
-
-# Lint
 npm run lint
 ```
 
-### API connection
+`frontend/lib/api.ts` exports a thin `api` helper (`get`, `post`, `patch`) wrapping `fetch`. Base URL defaults to `http://localhost:8080`, overridden by `NEXT_PUBLIC_API_URL`. Errors surface as `ApiError(status, message)` using the `detail` field from ProblemDetails responses.
 
-`frontend/lib/api.ts` exports a thin `api` helper (`get`, `post`, `patch`) that wraps `fetch`. The base URL defaults to `http://localhost:8080` and is overridden by `NEXT_PUBLIC_API_URL`. Errors are surfaced as `ApiError(status, message)` using the `detail` field from ProblemDetails responses.
+Pages that fetch on the server use `export const dynamic = "force-dynamic"`. Mutation forms live in client components under `components/`.
 
-### Structure
+## Testing
 
-| Path | Role |
-|---|---|
-| `app/` | Next.js App Router pages (`/`, `/loans`, `/loans/[id]`, `/loans/simulate`, `/transactions`) |
-| `components/` | Client components: `LoanList`, `LoanSimulator`, `PaymentScheduleTable`, `TransactionList`, `TransactionFilters` |
-| `services/` | `loan-service.ts`, `transaction-service.ts` — thin wrappers over `api` that map to backend endpoints |
-| `types/` | `loan.ts`, `transaction.ts` — TypeScript interfaces matching backend DTOs |
-| `lib/api.ts` | Shared fetch wrapper |
-
-Pages that fetch on the server use `export const dynamic = "force-dynamic"` to avoid caching stale loan/transaction data. All mutation forms live in client components under `components/`.
-
-## Pending / Not yet implemented
-
-- `Transaction` endpoints (POST /api/transactions, GET /api/transactions, GET /api/transactions/{id})
-- Loan schedule endpoint (GET /api/loans/{id}/schedule)
-- Approve/reject endpoints (PATCH /api/loans/{id}/approve, PATCH /api/loans/{id}/reject)
-- Idempotency check logic in transaction processing
+Tests use xUnit + Moq in `tests/FinTech.Tests/`. Handlers are tested by constructing them directly with mocked repositories and `IUnitOfWork` — no test server or database needed for unit tests.
