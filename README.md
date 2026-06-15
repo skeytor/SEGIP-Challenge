@@ -8,8 +8,8 @@ SGIP es una aplicación web fullstack para la gestión de préstamos financieros
 
 | Servicio | URL |
 |---|---|
-| Frontend | _pendiente de despliegue_ |
-| Backend (Swagger) | _pendiente de despliegue_ |
+| Frontend | https://segip-challenge.vercel.app/ |
+| Backend (Swagger) | https://segip-challenge-production.up.railway.app/swagger/index.html |
 
 **Credenciales de prueba:** No se requiere autenticación. Todas las operaciones usan un `userId` fijo (`user-hardcoded-002`) que representa al usuario activo.
 
