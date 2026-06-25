@@ -1,31 +1,32 @@
 using FinTech.Application.Abstractions;
-using FinTech.Application.DTOs.Responses;
-using FinTech.Application.UseCases.Loans.Approve;
-using FinTech.Application.UseCases.Loans.Create;
-using FinTech.Application.UseCases.Loans.GetAll;
-using FinTech.Application.UseCases.Loans.GetById;
-using FinTech.Application.UseCases.Loans.GetSchedule;
-using FinTech.Application.UseCases.Loans.Reject;
-using FinTech.Application.UseCases.Loans.Simulate;
-using FinTech.Application.UseCases.Transactions.Create;
-using FinTech.Application.UseCases.Transactions.GetAll;
-using FinTech.Application.UseCases.Transactions.GetById;
 using Microsoft.Extensions.DependencyInjection;
+using System.Reflection;
 
 namespace FinTech.Application;
 
 public static class DependencyInjection
 {
-    public static IServiceCollection AddApplicationServices(this IServiceCollection services) =>
-        services
-            .AddScoped<ICommandHandler<ApplyForLoanCommand, LoanResponse>, ApplyForLoanCommandHandler>()
-            .AddScoped<ICommandHandler<SimulateLoanCommand, SimulateLoanResponse>, SimulateLoanCommandHandler>()
-            .AddScoped<ICommandHandler<ApproveLoanCommand, LoanResponse>, ApproveLoanCommandHandler>()
-            .AddScoped<ICommandHandler<RejectLoanCommand, LoanResponse>, RejectLoanCommandHandler>()
-            .AddScoped<IQueryHandler<GetLoanByIdQuery, LoanResponse>, GetLoanByIdQueryHandler>()
-            .AddScoped<IQueryHandler<GetLoansQuery, IReadOnlyCollection<LoanResponse>>, GetLoansQueryHandler>()
-            .AddScoped<IQueryHandler<GetLoanScheduleQuery, IReadOnlyCollection<PaymentScheduleResponse>>, GetLoanScheduleQueryHandler>()
-            .AddScoped<ICommandHandler<CreateTransactionCommand, TransactionResponse>, CreateTransactionCommandHandler>()
-            .AddScoped<IQueryHandler<GetTransactionByIdQuery, TransactionResponse>, GetTransactionByIdQueryHandler>()
-            .AddScoped<IQueryHandler<GetTransactionsQuery, IReadOnlyCollection<TransactionResponse>>, GetTransactionsQueryHandler>();
+    /// <summary>
+    /// Adds all implementations of ICommandHandler and IQueryHandler from the FinTech.Application assembly to the service collection.
+    /// </summary>
+    /// <param name="services"></param>
+    /// <returns></returns>
+    public static IServiceCollection AddApplicationUseCases(this IServiceCollection services)
+    {
+        Assembly assembly = typeof(DependencyInjection).Assembly;
+
+        var types = assembly.GetTypes()
+            .Where(t => t.IsClass && !t.IsAbstract)
+            .SelectMany(t => t.GetInterfaces(), (t, i) => new { Impl = t, Interface = i })
+            .Where(x => x.Interface.IsGenericType &&
+                        (x.Interface.GetGenericTypeDefinition() == typeof(ICommandHandler<,>) ||
+                         x.Interface.GetGenericTypeDefinition() == typeof(IQueryHandler<,>)));
+
+        foreach (var type in types)
+        {
+            services.AddScoped(type.Interface, type.Impl);
+        }
+
+        return services;
+    }
 }

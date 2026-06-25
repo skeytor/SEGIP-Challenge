@@ -1,5 +1,6 @@
 using System.Net;
 using System.Net.Http.Json;
+using FinTech.API;
 using FinTech.Application.DTOs.Requests;
 using FinTech.Application.DTOs.Responses;
 using FinTech.Persistence;
